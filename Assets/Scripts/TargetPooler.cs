@@ -15,6 +15,8 @@ public class TargetPooler : MonoBehaviour
 
     void Start()
     {
+        pooledTargets = new List<GameObject>();
+
         for(int i = 0; i < numTargets; i++){
             GameObject tar = Instantiate(target);
             tar.SetActive(false);

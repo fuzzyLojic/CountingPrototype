@@ -26,7 +26,7 @@ public class ShotPooler : MonoBehaviour
         }
     }
 
-    public GameObject GetPooledObject(){
+    public GameObject GetPooledShot(){
         for(int i = 0; i < pooledShots.Count; i++){
             if(!pooledShots[i].activeInHierarchy && pooledShots[i] != null){
                 return pooledShots[i];

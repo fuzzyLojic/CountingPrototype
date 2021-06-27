@@ -1,24 +1,37 @@
-﻿using System;
+﻿// using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Counter : MonoBehaviour
 {
-    public Text CounterText;
+    private GameManager gameManager;
+    private AudioSource soundSouce;
+    [SerializeField] Material[] mats;
+    [SerializeField] AudioClip[] beeps;
 
-    private int Count = 0;
+    public int Value { get; set; }
 
     private void Start()
     {
-        Count = 0;
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        soundSouce = GameObject.Find("Game Manager").GetComponent<AudioSource>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Count += 1;
-        CounterText.text = "Count : " + Count;
+        AudioClip clip = beeps[Random.Range(0, beeps.Length)];
+        soundSouce.PlayOneShot(clip, 1);
+        gameManager.IncrementScore(Value);
         other.gameObject.SetActive(false);
+        ChangeColor();
+    }
+
+    private void ChangeColor(){
+        var mat = mats[Random.Range(0, mats.Length)];
+        foreach (Transform child in transform)
+        {
+            child.gameObject.GetComponent<MeshRenderer>().material = mat;
+        }
     }
 }

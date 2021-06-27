@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    private GameManager gameManager;
+
     private float xStartRotation = 0f;
     private float yStartRotation = 0f;
     private float xRotation;
     private float yRotation;
-    private float maxX = 16f;
-    private float maxY = 40f;
+    private float maxX = 40f;
+    private float maxY = 20f;
     private float horizontalInput;
     private float verticalInput;
     [SerializeField] float xSpeed;
@@ -17,10 +19,12 @@ public class PlayerController : MonoBehaviour
 
     private ShotPooler shotPool;
     [SerializeField] float shotForce;
-    [SerializeField] float vertAngle;
+    [SerializeField] float maxVertAngle;
+    private float vertAngle;
 
     private void Awake() {
         shotPool = ShotPooler.ShotPool;
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     }
 
     // Start is called before the first frame update
@@ -33,22 +37,25 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Look();
-        Fire();
-        ResetLook();
+        if(!gameManager.GameOver){
+            Look();
+            Fire();
+            ResetLook();
+        }
     }
 
     private void Look(){
         verticalInput = Input.GetAxis("Mouse Y");
         horizontalInput = Input.GetAxis("Mouse X");
 
-        xRotation += verticalInput * xSpeed;
+        xRotation += horizontalInput * xSpeed;
         xRotation = Mathf.Clamp(xRotation, -maxX + xStartRotation, maxX + xStartRotation);
 
-        yRotation += horizontalInput * ySpeed;
+        yRotation += verticalInput * ySpeed;
         yRotation = Mathf.Clamp(yRotation, -maxY + yStartRotation, maxY + yStartRotation);
 
-        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
+        transform.rotation = Quaternion.Euler(yRotation, xRotation, 0);
+        CalcVertAngle();
     }
 
     private void ResetLook(){
@@ -61,12 +68,22 @@ public class PlayerController : MonoBehaviour
     private void Fire(){
         if(Input.GetMouseButtonDown(0)){
             Vector3 shotAngle = transform.forward + new Vector3(0, vertAngle, 0);
-            GameObject shot = shotPool.GetPooledObject();
+            GameObject shot = shotPool.GetPooledShot();
             shot.SetActive(true);
             var shotRb = shot.GetComponent<Rigidbody>();
             shotRb.velocity = shotAngle * 0;
             shot.transform.position = transform.position;
             shotRb.AddForce(shotAngle * shotForce, ForceMode.Impulse);
         }
+    }
+
+    /// <summary>
+    /// Increase angle of shot as player looks up more
+    /// </summary>
+    private void CalcVertAngle(){
+        float currentY = (yRotation - (yStartRotation - maxY));
+        float yRange = (yStartRotation + maxY) - (yStartRotation - maxY);
+        float percentAngle = 1 - (currentY / yRange);
+        vertAngle = percentAngle * maxVertAngle; 
     }
 }
